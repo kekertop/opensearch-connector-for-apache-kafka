@@ -46,6 +46,7 @@ import org.opensearch.client.indices.PutMappingRequest;
 import org.opensearch.cluster.metadata.ComposableIndexTemplate;
 import org.opensearch.cluster.metadata.ComposableIndexTemplate.DataStreamTemplate;
 import org.opensearch.cluster.metadata.DataStream.TimestampField;
+import org.opensearch.common.xcontent.XContentType;
 
 import io.aiven.kafka.connect.opensearch.spi.ClientsConfiguratorProvider;
 import io.aiven.kafka.connect.opensearch.spi.OpensearchClientConfigurator;
@@ -63,7 +64,6 @@ import org.apache.http.nio.conn.SchemeIOSessionStrategy;
 import org.apache.http.nio.conn.ssl.SSLIOSessionStrategy;
 import org.apache.http.nio.reactor.IOReactorException;
 import org.apache.http.ssl.SSLContexts;
-import org.opensearch.common.xcontent.XContentType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -202,18 +202,14 @@ public class OpensearchClient implements AutoCloseable {
 
     public void createMapping(final String index, final Schema schema) {
         final var request = new PutMappingRequest(index).source(Mapping.buildMappingFor(schema));
-        withRetry(
-            String.format("create mapping for index %s with schema %s", index, schema),
-            () -> client.indices().putMapping(request, RequestOptions.DEFAULT)
-        );
+        withRetry(String.format("create mapping for index %s with schema %s", index, schema),
+                () -> client.indices().putMapping(request, RequestOptions.DEFAULT));
     }
 
     public void createMapping(final String index, final String mappingJson) {
         final var request = new PutMappingRequest(index).source(mappingJson, XContentType.JSON);
-        withRetry(
-            String.format("create mapping for index %s with custom mapping", index),
-            () -> client.indices().putMapping(request, RequestOptions.DEFAULT)
-        );
+        withRetry(String.format("create mapping for index %s with custom mapping", index),
+                () -> client.indices().putMapping(request, RequestOptions.DEFAULT));
     }
 
     public boolean hasMapping(final String index) {

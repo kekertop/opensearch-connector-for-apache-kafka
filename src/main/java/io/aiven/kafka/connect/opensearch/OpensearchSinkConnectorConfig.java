@@ -164,15 +164,13 @@ public class OpensearchSinkConnectorConfig extends AbstractConfig {
             IndexWriteMethod.UPSERT.name().toLowerCase(Locale.ROOT));
 
     public static final String CUSTOM_MAPPING_CONFIG = "custom.mapping";
-    private static final String CUSTOM_MAPPING_DOC =
-        "The custom mapping to use for the Opensearch index. This should be a JSON string "
+    private static final String CUSTOM_MAPPING_DOC = "The custom mapping to use for the Opensearch index. This should be a JSON string "
             + "representing the mapping. If this is not set, the connector will attempt to infer "
             + "the mapping from the record schema.";
     private static final String CUSTOM_MAPPING_DISPLAY = "Custom Mapping";
 
     public static final String CUSTOM_SETTINGS_CONFIG = "custom.settings";
-    private static final String CUSTOM_SETTINGS_DOC =
-        "The custom settings to use for the Opensearch index. This should be a JSON string "
+    private static final String CUSTOM_SETTINGS_DOC = "The custom settings to use for the Opensearch index. This should be a JSON string "
             + "representing the settings. If this is not set, the connector will use the default "
             + "settings for the index.";
     private static final String CUSTOM_SETTINGS_DISPLAY = "Custom Settings";
@@ -519,15 +517,11 @@ public class OpensearchSinkConnectorConfig extends AbstractConfig {
     }
 
     public boolean hasCustomMapping() {
-        return Optional.ofNullable(customMapping())
-            .filter(mapping -> !mapping.isBlank())
-            .isPresent();
+        return Optional.ofNullable(customMapping()).filter(mapping -> !mapping.isBlank()).isPresent();
     }
 
     public boolean hasCustomSettings() {
-        return Optional.ofNullable(customSettings())
-            .filter(settings -> !settings.isBlank())
-            .isPresent();
+        return Optional.ofNullable(customSettings()).filter(settings -> !settings.isBlank()).isPresent();
     }
 
     public static void main(final String[] args) {

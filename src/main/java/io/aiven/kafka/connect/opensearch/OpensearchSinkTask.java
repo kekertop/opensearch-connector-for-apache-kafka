@@ -167,8 +167,7 @@ public class OpensearchSinkTask extends SinkTask {
     }
 
     private void checkMappingFor(final String index, final SinkRecord record) {
-        final var canCreateIndex = !config.ignoreSchemaFor(record.topic())
-            || config.hasCustomMapping();
+        final var canCreateIndex = !config.ignoreSchemaFor(record.topic()) || config.hasCustomMapping();
 
         if (canCreateIndex && !indexMappingsCache.contains(index)) {
             if (!client.hasMapping(index)) {
