@@ -163,6 +163,20 @@ public class OpensearchSinkConnectorConfig extends AbstractConfig {
             IndexWriteMethod.INSERT.name().toLowerCase(Locale.ROOT),
             IndexWriteMethod.UPSERT.name().toLowerCase(Locale.ROOT));
 
+    public static final String CUSTOM_MAPPING_CONFIG = "custom.mapping";
+    private static final String CUSTOM_MAPPING_DOC =
+        "The custom mapping to use for the Opensearch index. This should be a JSON string "
+            + "representing the mapping. If this is not set, the connector will attempt to infer "
+            + "the mapping from the record schema.";
+    private static final String CUSTOM_MAPPING_DISPLAY = "Custom Mapping";
+
+    public static final String CUSTOM_SETTINGS_CONFIG = "custom.settings";
+    private static final String CUSTOM_SETTINGS_DOC =
+        "The custom settings to use for the Opensearch index. This should be a JSON string "
+            + "representing the settings. If this is not set, the connector will use the default "
+            + "settings for the index.";
+    private static final String CUSTOM_SETTINGS_DISPLAY = "Custom Settings";
+
     public static final String DATA_STREAM_ENABLED = "data.stream.enabled";
     public static final String DATA_STREAM_INDEX_TEMPLATE_NAME = "data.streams.existing.index.template.name";
 
@@ -291,7 +305,11 @@ public class OpensearchSinkConnectorConfig extends AbstractConfig {
                         BulkProcessor.BehaviorOnVersionConflict.DEFAULT.toString(),
                         BulkProcessor.BehaviorOnVersionConflict.VALIDATOR, Importance.LOW,
                         BEHAVIOR_ON_VERSION_CONFLICT_DOC, DATA_CONVERSION_GROUP_NAME, ++order, Width.SHORT,
-                        "Behavior on document's version conflict (optimistic locking)");
+                        "Behavior on document's version conflict (optimistic locking)")
+                .define(CUSTOM_MAPPING_CONFIG, Type.STRING, "", Importance.LOW, CUSTOM_MAPPING_DOC,
+                        DATA_CONVERSION_GROUP_NAME, ++order, Width.LONG, CUSTOM_MAPPING_DISPLAY)
+                .define(CUSTOM_SETTINGS_CONFIG, Type.STRING, "", Importance.LOW, CUSTOM_SETTINGS_DOC,
+                        DATA_CONVERSION_GROUP_NAME, ++order, Width.LONG, CUSTOM_SETTINGS_DISPLAY);
     }
 
     private static void addDataStreamConfig(final ConfigDef configDef) {
@@ -490,6 +508,26 @@ public class OpensearchSinkConnectorConfig extends AbstractConfig {
     public BulkProcessor.BehaviorOnVersionConflict behaviorOnVersionConflict() {
         return BulkProcessor.BehaviorOnVersionConflict
                 .forValue(getString(OpensearchSinkConnectorConfig.BEHAVIOR_ON_VERSION_CONFLICT_CONFIG));
+    }
+
+    public String customMapping() {
+        return getString(CUSTOM_MAPPING_CONFIG);
+    }
+
+    public String customSettings() {
+        return getString(CUSTOM_SETTINGS_CONFIG);
+    }
+
+    public boolean hasCustomMapping() {
+        return Optional.ofNullable(customMapping())
+            .filter(mapping -> !mapping.isBlank())
+            .isPresent();
+    }
+
+    public boolean hasCustomSettings() {
+        return Optional.ofNullable(customSettings())
+            .filter(settings -> !settings.isBlank())
+            .isPresent();
     }
 
     public static void main(final String[] args) {

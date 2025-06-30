@@ -63,6 +63,7 @@ import org.apache.http.nio.conn.SchemeIOSessionStrategy;
 import org.apache.http.nio.conn.ssl.SSLIOSessionStrategy;
 import org.apache.http.nio.reactor.IOReactorException;
 import org.apache.http.ssl.SSLContexts;
+import org.opensearch.common.xcontent.XContentType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -180,7 +181,13 @@ public class OpensearchClient implements AutoCloseable {
     public boolean createIndex(final String index) {
         return withRetry(String.format("create index %s", index), () -> {
             try {
-                client.indices().create(new CreateIndexRequest(index), RequestOptions.DEFAULT);
+                final var request = new CreateIndexRequest(index);
+                if (config.hasCustomSettings()) {
+                    LOGGER.info("Creating settings for index '{}' from custom settings config.", index);
+                    request.settings(config.customSettings(), XContentType.JSON);
+                }
+
+                client.indices().create(request, RequestOptions.DEFAULT);
                 return true;
             } catch (final OpenSearchStatusException | IOException e) {
                 if (!(e.getMessage().contains(RESOURCE_ALREADY_EXISTS_EXCEPTION)
@@ -195,8 +202,18 @@ public class OpensearchClient implements AutoCloseable {
 
     public void createMapping(final String index, final Schema schema) {
         final var request = new PutMappingRequest(index).source(Mapping.buildMappingFor(schema));
-        withRetry(String.format("create mapping for index %s with schema %s", index, schema),
-                () -> client.indices().putMapping(request, RequestOptions.DEFAULT));
+        withRetry(
+            String.format("create mapping for index %s with schema %s", index, schema),
+            () -> client.indices().putMapping(request, RequestOptions.DEFAULT)
+        );
+    }
+
+    public void createMapping(final String index, final String mappingJson) {
+        final var request = new PutMappingRequest(index).source(mappingJson, XContentType.JSON);
+        withRetry(
+            String.format("create mapping for index %s with custom mapping", index),
+            () -> client.indices().putMapping(request, RequestOptions.DEFAULT)
+        );
     }
 
     public boolean hasMapping(final String index) {

@@ -30,6 +30,7 @@ import java.util.function.Function;
 import org.apache.kafka.clients.consumer.OffsetAndMetadata;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.config.ConfigException;
+import org.apache.kafka.connect.data.Schema;
 import org.apache.kafka.connect.errors.ConnectException;
 import org.apache.kafka.connect.errors.DataException;
 import org.apache.kafka.connect.sink.ErrantRecordReporter;
@@ -166,12 +167,25 @@ public class OpensearchSinkTask extends SinkTask {
     }
 
     private void checkMappingFor(final String index, final SinkRecord record) {
-        if (!config.ignoreSchemaFor(record.topic()) && !indexMappingsCache.contains(index)) {
+        final var canCreateIndex = !config.ignoreSchemaFor(record.topic())
+            || config.hasCustomMapping();
+
+        if (canCreateIndex && !indexMappingsCache.contains(index)) {
             if (!client.hasMapping(index)) {
                 LOGGER.info("Create mapping for index {} and schema {}", index, record.valueSchema());
-                client.createMapping(index, record.valueSchema());
+                createMapping(index, record.valueSchema());
                 indexMappingsCache.add(index);
             }
+        }
+    }
+
+    private void createMapping(String index, Schema schema) {
+        if (config.hasCustomMapping()) {
+            LOGGER.info("Creating mapping for index '{}' from custom mapping config.", index);
+            client.createMapping(index, config.customMapping());
+        } else {
+            LOGGER.info("Creating mapping for index '{}' from schema.", index);
+            client.createMapping(index, schema);
         }
     }
 
